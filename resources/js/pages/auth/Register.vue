@@ -9,6 +9,8 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/vue3';
+
+
 </script>
 
 <template>
@@ -103,6 +105,10 @@ import { Form, Head } from '@inertiajs/vue3';
                     >Log in</TextLink
                 >
             </div>
+            <a href="/auth/google" class="btn-google">
+  S’inscrire avec Google
+</a>
+
         </Form>
     </AuthBase>
 </template>

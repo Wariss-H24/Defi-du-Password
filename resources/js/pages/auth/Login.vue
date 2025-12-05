@@ -12,6 +12,7 @@ import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/vue3';
 
+
 defineProps<{
     status?: string;
     canResetPassword: boolean;
@@ -59,52 +60,55 @@ defineProps<{
                     <div class="flex items-center justify-between">
                         <Label for="password">Password</Label>
                         <TextLink
-                            v-if="canResetPassword"
-                            :href="request()"
-                            class="text-sm"
-                            :tabindex="5"
+                        v-if="canResetPassword"
+                        :href="request()"
+                        class="text-sm"
+                        :tabindex="5"
                         >
-                            Forgot password?
-                        </TextLink>
-                    </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
+                        Forgot password?
+                    </TextLink>
+                </div>
+                <Input
+                id="password"
+                type="password"
+                name="password"
+                required
                         :tabindex="2"
                         autocomplete="current-password"
                         placeholder="Password"
                     />
                     <InputError :message="errors.password" />
                 </div>
-
+                
                 <div class="flex items-center justify-between">
                     <Label for="remember" class="flex items-center space-x-3">
                         <Checkbox id="remember" name="remember" :tabindex="3" />
                         <span>Remember me</span>
                     </Label>
                 </div>
-
+                
                 <Button
-                    type="submit"
-                    class="mt-4 w-full"
-                    :tabindex="4"
-                    :disabled="processing"
-                    data-test="login-button"
+                type="submit"
+                class="mt-4 w-full"
+                :tabindex="4"
+                :disabled="processing"
+                data-test="login-button"
                 >
-                    <Spinner v-if="processing" />
-                    Log in
-                </Button>
-            </div>
-
-            <div
-                class="text-center text-sm text-muted-foreground"
-                v-if="canRegister"
-            >
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
-            </div>
-        </Form>
-    </AuthBase>
+                <Spinner v-if="processing" />
+                Log in
+            </Button>
+        </div>
+        
+        <div
+        class="text-center text-sm text-muted-foreground"
+        v-if="canRegister"
+        >
+        Don't have an account?
+        <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+    </div>
+</Form>
+<a href="/auth/google" class="btn-google">
+Se connecter avec Google
+</a>
+</AuthBase>
 </template>
