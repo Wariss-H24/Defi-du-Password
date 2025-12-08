@@ -1,54 +1,56 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 
 const props = defineProps({
     level: Object
 })
 
+const page = usePage()
 const currentStepIndex = ref(0)
 const inputPassword = ref('')
 const error = ref('')
-const successMessage = ref('') // NOUVEAU : État pour le message de succès
+const successMessage = ref('')
+const isLoading = ref(false)
 
 const currentStep = computed(() => props.level.steps[currentStepIndex.value])
 const progress = computed(() => ((currentStepIndex.value + 1) / props.level.steps.length) * 100)
 
 const validateStep = () => {
     error.value = ''
-    successMessage.value = '' // Réinitialiser avant l'appel
+    successMessage.value = ''
+    isLoading.value = true
 
     router.post(
         router.route('game.validate', { level: props.level.id, step: currentStep.value.id }), 
         { password: inputPassword.value }, 
         {
-            onSuccess: (page) => {
-                const response = page.props.response // Supposons que le contrôleur renvoie une prop 'response'
+            onSuccess: () => {
+                isLoading.value = false
+                const flash = page.props.flash
 
-                // Logique après validation
-                if (page.props.flash?.success) { // Utilisateur réussi l'étape
+                if (flash?.success) {
                     inputPassword.value = ''
                     
                     if (currentStepIndex.value < props.level.steps.length - 1) {
+                        // Passage à l'étape suivante
                         currentStepIndex.value++
+                        successMessage.value = ''
                     } else {
-                        // 🛑 REMPLACEMENT DE L'ALERT PAR UN MESSAGE DANS L'UI
-                        successMessage.value = `Bravo ! Vous avez terminé le niveau ${props.level.name} !`;
-                        
-                        // Redirection différée (vous pouvez le rendre immédiat si vous préférez)
+                        // Fin du niveau
+                        successMessage.value = `Bravo ! Vous avez terminé le niveau ${props.level.name} !`
                         setTimeout(() => {
-                           // Assurez-vous que le prochain niveau existe avant de naviguer
-                           router.visit(router.route('game.play', { level: props.level.id + 1 }))
-                        }, 1500);
+                            router.visit(router.route('game.play', { level: props.level.id + 1 }))
+                        }, 2000)
                     }
-                } else if (page.props.flash?.error) {
-                    error.value = page.props.flash.error
+                } else if (flash?.error) {
+                    error.value = flash.error
                 } else {
-                    // Fallback
                     error.value = 'Une erreur inconnue est survenue.'
                 }
             },
             onError: (errors) => {
+                isLoading.value = false
                 error.value = errors.password ? errors.password[0] : 'Erreur de validation.'
             }
         }
@@ -97,9 +99,9 @@ const validateStep = () => {
                     class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-green-400 focus:border-green-400 border-none transition duration-150" />
 
             <button @click="validateStep"
-                    :disabled="!inputPassword || !!successMessage"
+                    :disabled="!inputPassword || !!successMessage || isLoading"
                     class="mt-4 w-full px-4 py-3 bg-green-600 hover:bg-green-500 rounded-lg text-white font-bold text-lg transition duration-150 transform hover:scale-[1.01] disabled:bg-gray-600 disabled:cursor-not-allowed shadow-md">
-                Valider
+                {{ isLoading ? 'Vérification...' : 'Valider' }}
             </button>
 
             <p v-if="error" class="text-red-400 mt-3 p-2 bg-red-900/30 rounded-lg border border-red-500 text-sm font-medium">

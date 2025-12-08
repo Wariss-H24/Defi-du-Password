@@ -34,9 +34,9 @@ class GameController extends Controller
         ]);
 
         if ($valid) {
-            return response()->json(['success' => true]);
+            return back()->with('flash', ['success' => true]);
         } else {
-            return response()->json(['success' => false, 'error' => 'Mot de passe incorrect']);
+            return back()->with('flash', ['error' => 'Mot de passe incorrect']);
         }
     }
 

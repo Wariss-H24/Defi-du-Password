@@ -11,7 +11,7 @@ class Step extends Model
     use HasFactory;
 
     
-    protected $fillable = ['level_id','title','constraints','order'];
+    protected $fillable = ['level_id','title','constraints','order','password','description'];
     protected $casts = ['constraints' => 'array'];
     public function level() {
         return $this->belongsTo(Level::class);
