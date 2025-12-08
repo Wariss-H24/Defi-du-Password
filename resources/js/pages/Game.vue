@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const props = defineProps({
-    level: Object
+    level: Object,
+    nextLevelUrl: String
 })
 
 const page = usePage()
@@ -21,40 +23,48 @@ const validateStep = () => {
     successMessage.value = ''
     isLoading.value = true
 
-    router.post(
-        router.route('game.validate', { level: props.level.id, step: currentStep.value.id }), 
-        { password: inputPassword.value }, 
-        {
-            onSuccess: () => {
-                isLoading.value = false
-                const flash = page.props.flash
+    // Use axios for the request (AJAX). Axios will send X-Requested-With header so controller returns JSON.
+    axios.post(currentStep.value.validate_url, { password: inputPassword.value })
+        .then((res) => {
+            isLoading.value = false
 
-                if (flash?.success) {
-                    inputPassword.value = ''
-                    
-                    if (currentStepIndex.value < props.level.steps.length - 1) {
-                        // Passage à l'étape suivante
-                        currentStepIndex.value++
-                        successMessage.value = ''
-                    } else {
-                        // Fin du niveau
-                        successMessage.value = `Bravo ! Vous avez terminé le niveau ${props.level.name} !`
-                        setTimeout(() => {
-                            router.visit(router.route('game.play', { level: props.level.id + 1 }))
-                        }, 2000)
-                    }
-                } else if (flash?.error) {
-                    error.value = flash.error
+            if (res.data?.success) {
+                inputPassword.value = ''
+
+                if (currentStepIndex.value < props.level.steps.length - 1) {
+                    currentStepIndex.value++
+                    successMessage.value = ''
                 } else {
-                    error.value = 'Une erreur inconnue est survenue.'
+                    successMessage.value = `Bravo ! Vous avez terminé le niveau ${props.level.name} !`
+                    setTimeout(() => {
+                        router.visit(props.nextLevelUrl)
+                    }, 2000)
                 }
-            },
-            onError: (errors) => {
-                isLoading.value = false
-                error.value = errors.password ? errors.password[0] : 'Erreur de validation.'
+            } else if (res.data?.error) {
+                error.value = res.data.error
+            } else {
+                error.value = 'Une erreur inconnue est survenue.'
             }
-        }
-    )
+        })
+        .catch((err) => {
+            isLoading.value = false
+
+            // Validation errors (422) may come back in err.response.data.errors
+            if (err.response && err.response.status === 422) {
+                const data = err.response.data
+                if (data && data.error) {
+                    error.value = data.error
+                } else if (data && data.errors && data.errors.password) {
+                    error.value = data.errors.password[0]
+                } else {
+                    error.value = 'Erreur de validation.'
+                }
+                return
+            }
+
+            error.value = 'Une erreur inconnue est survenue.'
+            console.error('Validation request failed', err)
+        })
 }
 </script>
 

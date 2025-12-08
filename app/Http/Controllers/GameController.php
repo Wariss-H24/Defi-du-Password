@@ -12,8 +12,20 @@ class GameController extends Controller
 {
     public function play(Level $level)
     {
+        // Charger les étapes et ajouter une URL de validation pour chaque étape
+        $level->load('steps');
+
+        $level->steps->transform(function ($step) use ($level) {
+            $step->validate_url = route('game.validate', ['level' => $level->id, 'step' => $step->id]);
+            return $step;
+        });
+
+        // URL pour jouer le niveau suivant (simple incrément d'ID)
+        $nextLevelUrl = route('game.play', ['level' => $level->id + 1]);
+
         return Inertia::render('Game', [
-            'level' => $level->load('steps')
+            'level' => $level,
+            'nextLevelUrl' => $nextLevelUrl,
         ]);
     }
 
@@ -33,6 +45,16 @@ class GameController extends Controller
             'success' => $valid
         ]);
 
+        // If this is an AJAX / XHR request, return JSON so the frontend can handle it directly
+        if ($req->ajax() || $req->wantsJson() || $req->header('X-Requested-With') === 'XMLHttpRequest') {
+            if ($valid) {
+                return response()->json(['success' => true], 200);
+            }
+
+            return response()->json(['error' => 'Mot de passe incorrect'], 422);
+        }
+
+        // Fallback for non-AJAX requests (normal form submit)
         if ($valid) {
             return back()->with('flash', ['success' => true]);
         } else {
