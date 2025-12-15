@@ -6,7 +6,9 @@
       <li v-for="level in levels" :key="level.id" class="bg-gray-800 rounded-lg shadow-md p-4">
         <div class="flex items-center justify-between">
           <div>
-            <span class="text-lg font-semibold text-indigo-400">{{ level.name }}</span>
+            <button @click="goToLevel(level.id)" class="text-left">
+              <span class="text-lg font-semibold text-indigo-400 hover:underline hover:text-green-300 cursor-pointer">{{ level.name }}</span>
+            </button>
             <p class="text-sm text-gray-400">{{ level.description }}</p>
           </div>
           <span class="px-3 py-1 text-xs rounded-full bg-green-700 text-white">
@@ -28,7 +30,13 @@
 </template>
 
 <script setup>
-defineProps({
+import { router } from '@inertiajs/vue3'
+const props = defineProps({
   levels: Array
 })
+
+function goToLevel(id) {
+  // Use Inertia router to visit the level play page
+  router.visit(`/play/${id}`)
+}
 </script>
