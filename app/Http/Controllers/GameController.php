@@ -56,7 +56,7 @@ class GameController extends Controller
             'success' => $valid
         ]);
 
-        // If this is an AJAX / XHR request, return JSON so the frontend can handle it directly
+        // 
         if ($req->ajax() || $req->wantsJson() || $req->header('X-Requested-With') === 'XMLHttpRequest') {
             if ($valid) {
                 return response()->json(['success' => true], 200);
@@ -65,7 +65,7 @@ class GameController extends Controller
             return response()->json(['error' => 'Mot de passe incorrect'], 422);
         }
 
-        // Fallback for non-AJAX requests (normal form submit)
+        // 
         if ($valid) {
             return back()->with('flash', ['success' => true]);
         } else {
@@ -76,7 +76,7 @@ class GameController extends Controller
 private function checkConstraints($input, $constraints)
 {
     switch ($constraints) {
-        // 🔹 Niveau 1
+        //Niveau 1
         case "Entrer une lettre minuscule":
             return preg_match('/[a-z]/', $input);
 
@@ -107,7 +107,7 @@ private function checkConstraints($input, $constraints)
         case "Entrer trois chiffres":
             return preg_match_all('/[0-9]/', $input) >= 3;
 
-        // 🔹 Niveau 2
+        //Niveau 2
         case "Entrer une lettre majuscule + une minuscule":
             return preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input);
 
@@ -126,7 +126,7 @@ private function checkConstraints($input, $constraints)
         case "Entrer deux lettres + deux chiffres":
             return preg_match_all('/[A-Za-z]/', $input) >= 2 && preg_match_all('/[0-9]/', $input) >= 2;
 
-        // 🔹 Niveau 3
+        //Niveau 3
         case "Mot de 4 lettres minuscules":
             return preg_match('/^[a-z]{4}$/', $input);
 
@@ -154,7 +154,7 @@ private function checkConstraints($input, $constraints)
                    preg_match('/[0-9]/', $input) &&
                    preg_match('/[^A-Za-z0-9]/', $input);
 
-        // 🔹 Niveau 4
+        //Niveau 4
         case "6 lettres uniquement":
             return preg_match('/^[A-Za-z]{6}$/', $input);
 
@@ -186,7 +186,7 @@ private function checkConstraints($input, $constraints)
         case "Au moins 1 majuscule + 1 minuscule + 1 chiffre":
             return preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input);
 
-        // 🔹 Niveau 5
+        //Niveau 5
         case "Mot de 7 caractères (lettres/chiffres)":
             return preg_match('/^[A-Za-z0-9]{7}$/', $input);
 
@@ -226,7 +226,7 @@ private function checkConstraints($input, $constraints)
                    preg_match('/[0-9]/', $input) &&
                    preg_match('/[^A-Za-z0-9]/', $input);
 
-        // 🔹 Niveau 6 (9 caractères)
+        //Niveau 6 (9 caractères)
         case "Mot de 9 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 9 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -257,7 +257,7 @@ private function checkConstraints($input, $constraints)
         case "Mot de 9 caractères mix complet":
             return strlen($input) === 9 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
-        // 🔹 Niveau 7 (10 caractères)
+        //Niveau 7 (10 caractères)
         case "Mot de 10 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 10 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -288,7 +288,7 @@ private function checkConstraints($input, $constraints)
             // at least 2 upper, 2 lower, 2 digits, 1 special
             return strlen($input) === 10 && preg_match_all('/[A-Z]/', $input) >= 2 && preg_match_all('/[a-z]/', $input) >= 2 && preg_match_all('/[0-9]/', $input) >= 2 && preg_match_all('/[^A-Za-z0-9]/', $input) >= 1;
 
-        // 🔹 Niveau 8 (11 caractères)
+        //Niveau 8 (11 caractères)
         case "Mot de 11 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 11 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -313,7 +313,7 @@ private function checkConstraints($input, $constraints)
         case "Mot de 11 caractères avec séquence de lettres/chiffres":
             return strlen($input) === 11 && (preg_match('/[A-Za-z]{3,}/', $input) || preg_match('/[0-9]{3,}/', $input));
 
-        // 🔹 Niveau 9 (12 caractères)
+        //Niveau 9 (12 caractères)
         case "Mot de 12 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 12 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -338,7 +338,7 @@ private function checkConstraints($input, $constraints)
         case "Mot de 12 caractères avec séquence complexe":
             return strlen($input) === 12 && (preg_match('/[A-Za-z]{4,}/', $input) || preg_match('/[0-9]{4,}/', $input));
 
-        // 🔹 Niveau 10 (13 caractères)
+        //Niveau 10 (13 caractères)
         case "Mot de 13 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 13 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -363,7 +363,7 @@ private function checkConstraints($input, $constraints)
         case "Mot de 13 caractères avec séquence complexe":
             return strlen($input) === 13 && (preg_match('/[A-Za-z]{4,}/', $input) || preg_match('/[0-9]{4,}/', $input));
 
-        // 🔹 Niveau 11 (14 caractères)
+        //Niveau 11 (14 caractères)
         case "Mot de 14 caractères avec maj/min/chiffres/spéciaux":
             return strlen($input) === 14 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
@@ -388,7 +388,7 @@ private function checkConstraints($input, $constraints)
         case "Mot de 14 caractères avec séquence complexe":
             return strlen($input) === 14 && (preg_match('/[A-Za-z]{4,}/', $input) || preg_match('/[0-9]{4,}/', $input));
 
-        // 🔹 Niveau 12 (15 caractères)
+        //Niveau 12 (15 caractères)
         case "Mot de 15 caractères final avec maj/min/chiffres/spéciaux":
             return strlen($input) === 15 && preg_match('/[A-Z]/', $input) && preg_match('/[a-z]/', $input) && preg_match('/[0-9]/', $input) && preg_match('/[^A-Za-z0-9]/', $input);
 
