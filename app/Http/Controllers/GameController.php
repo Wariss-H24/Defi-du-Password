@@ -7,6 +7,7 @@ use App\Models\Step;
 use App\Models\PasswordAttempt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class GameController extends Controller
@@ -71,6 +72,27 @@ class GameController extends Controller
         } else {
             return back()->with('flash', ['error' => 'Mot de passe incorrect']);
         }
+    }
+
+    /**
+     * Mettre à jour le mot de passe de l'utilisateur connecté depuis le jeu.
+     * Cette méthode est protégée par le middleware `auth` au niveau de la route.
+     */
+    public function setPasswordFromGame(Request $req)
+    {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Non authentifié'], 401);
+        }
+
+        $data = $req->validate([
+            'password' => 'required|string|min:6',
+        ]);
+
+        $user = auth()->user();
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        return response()->json(['success' => true]);
     }
 
 private function checkConstraints($input, $constraints)

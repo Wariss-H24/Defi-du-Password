@@ -14,6 +14,7 @@ const inputPassword = ref('')
 const error = ref('')
 const successMessage = ref('')
 const isLoading = ref(false)
+const lastSuccessfulPassword = ref('')
 
 const currentStep = computed(() => props.level.steps[currentStepIndex.value])
 const progress = computed(() => ((currentStepIndex.value + 1) / props.level.steps.length) * 100)
@@ -29,16 +30,26 @@ const validateStep = () => {
             isLoading.value = false
 
             if (res.data?.success) {
+                // garder la dernière tentative qui a réussi afin de proposer de la définir
+                lastSuccessfulPassword.value = inputPassword.value
                 inputPassword.value = ''
 
                 if (currentStepIndex.value < props.level.steps.length - 1) {
                     currentStepIndex.value++
                     successMessage.value = ''
                 } else {
+                    // Niveau terminé : afficher message et actions (pas de redirection automatique)
                     successMessage.value = `Bravo ! Vous avez terminé le niveau ${props.level.name} !`
-                    setTimeout(() => {
-                        router.visit(props.nextLevelUrl)
-                    }, 2000)
+                    // Si la dernière tentative est présente mais trop courte (<6),
+                    // avancer automatiquement vers le niveau suivant si possible.
+                    if (lastSuccessfulPassword.value && lastSuccessfulPassword.value.length < 6) {
+                        if (props.nextLevelUrl) {
+                            // petit délai pour que l'utilisateur voie le message
+                            setTimeout(() => {
+                                goToNextLevel()
+                            }, 900)
+                        }
+                    }
                 }
             } else if (res.data?.error) {
                 error.value = res.data.error
@@ -66,6 +77,51 @@ const validateStep = () => {
             console.error('Validation request failed', err)
         })
 }
+
+const setAsPassword = () => {
+    error.value = ''
+    successMessage.value = ''
+
+    if (!lastSuccessfulPassword.value) {
+        error.value = 'Aucun mot de passe à définir.'
+        return
+    }
+
+    isLoading.value = true
+
+    axios.post('/user/password/set-from-game', { password: lastSuccessfulPassword.value })
+        .then((res) => {
+            isLoading.value = false
+            if (res.data?.success) {
+                successMessage.value = 'Mot de passe mis à jour avec succès. Vous pouvez maintenant vous connecter avec ce mot de passe.'
+                // clear stored candidate so user doesn't accidentally reuse
+                lastSuccessfulPassword.value = ''
+            } else if (res.data?.error) {
+                error.value = res.data.error
+            } else {
+                error.value = 'Erreur lors de la mise à jour du mot de passe.'
+            }
+        })
+        .catch((err) => {
+            isLoading.value = false
+            if (err.response && err.response.data && err.response.data.errors) {
+                // validation errors
+                const data = err.response.data
+                if (data.error) error.value = data.error
+                else if (data.errors && data.errors.password) error.value = data.errors.password[0]
+                else error.value = 'Erreur de validation.'
+                return
+            }
+            error.value = 'Une erreur inconnue est survenue.'
+            console.error('Set password request failed', err)
+        })
+}
+
+const goToNextLevel = () => {
+    if (props.nextLevelUrl) {
+        router.visit(props.nextLevelUrl)
+    }
+}
 </script>
 
 <template>
@@ -74,11 +130,6 @@ const validateStep = () => {
             Niveau : {{ level.title }}
         </h2>
         <p class="text-gray-400 mb-4">{{ level.description }}</p>
-
-        <!-- Message de Succès Global (Fin de niveau) -->
-        <div v-if="successMessage" class="bg-blue-800 border border-blue-600 text-white p-4 rounded-lg mb-6 shadow-xl">
-            {{ successMessage }}
-        </div>
 
         <!-- Barre de progression -->
         <div class="mb-8">
@@ -94,7 +145,7 @@ const validateStep = () => {
         </div>
 
         <!-- Étape en cours -->
-        <div v-if="currentStep" class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl">
+    <div v-if="currentStep" class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl">
             <h3 class="text-xl font-bold text-indigo-400 mb-3">
                 Étape {{ currentStep.order }} : Le défi
             </h3>
@@ -118,7 +169,30 @@ const validateStep = () => {
                 Erreur : {{ error }}
             </p>
         </div>
-        
+
+        <!-- Actions affichées à la fin du niveau : définir mot de passe / aller au niveau suivant -->
+        <div v-if="successMessage" class="mt-6 bg-blue-800 border border-blue-600 text-white p-4 rounded-lg mb-6 shadow-xl">
+            <div class="flex items-center justify-between">
+                <p class="font-medium">{{ successMessage }}</p>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-3">
+                <button v-if="lastSuccessfulPassword && lastSuccessfulPassword.length >= 6"
+                        @click="setAsPassword"
+                        :disabled="isLoading"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-medium disabled:opacity-60">
+                    {{ isLoading ? 'Traitement...' : 'Définir ce mot de passe pour mon compte' }}
+                </button>
+
+                <button v-if="nextLevelUrl"
+                        @click="goToNextLevel"
+                        :disabled="isLoading"
+                        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white font-medium disabled:opacity-60">
+                    Aller au niveau suivant
+                </button>
+            </div>
+        </div>
+
         <div v-else class="text-center p-10 text-xl text-gray-500">
             Chargement du niveau...
         </div>

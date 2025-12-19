@@ -58,4 +58,6 @@ Route::resource('levels.steps', StepController::class)->shallow();
 // Route pour jouer un niveau
 Route::get('/play/{level}', [GameController::class, 'play'])->name('game.play');
 Route::post('/play/{level}/step/{step}', [GameController::class, 'validateStep'])->name('game.validate');
+// Endpoint pour définir le mot de passe de l'utilisateur depuis l'interface de jeu
+Route::post('/user/password/set-from-game', [GameController::class, 'setPasswordFromGame'])->middleware('auth')->name('user.password.setFromGame');
 require __DIR__.'/settings.php';
